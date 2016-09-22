@@ -11,6 +11,7 @@
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
+extern void keyboard_handler();
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',

@@ -53,26 +53,39 @@
       movl %edx, %ds;           \
       movl %edx, %es
 
-#define RESTORE_ALL \
-      movl %gs,28(%esp); \
-      movl %fs,24(%esp); \
-      movl %es,20(%esp); \
-      movl %ds,1C(%esp); \
-      movl %eax,18(%esp); \
-      movl %ebp,14(%esp); \
-      movl %edi,10(%esp); \
-      movl %esi,C(%esp); \
-      movl %edx,8(%esp); \
-      movl %ecx,4(%esp); \
+#define RESTORE_ALL2 \
+      movl %gs,0x28(%esp); \
+      movl %fs,0x24(%esp); \
+      movl %es,0x20(%esp); \
+      movl %ds,0x1C(%esp); \
+      movl %eax,0x18(%esp); \
+      movl %ebp,0x14(%esp); \
+      movl %edi,0x10(%esp); \
+      movl %esi,0x0C(%esp); \
+      movl %edx,0x08(%esp); \
+      movl %ecx,0x04(%esp); \
       movl %ebx,(%esp)
+#define RESTORE_ALL \
+      popl %ebx; \
+      popl %ecx; \
+      popl %edx; \
+      popl %esi; \
+      popl %edi; \
+      popl %ebp; \
+      popl %eax; \
+      popl %ds; \
+      popl %es; \
+      popl %fs; \
+      popl %gs
       
 #define EOI \
     movb $0x20,%al ; \
     outb %al,$0x20 ;
-keyboard_handler:
+
+ENTRY(keyboard_handler)
         SAVE_ALL
         EOI
         call keyboard_routine
         RESTORE_ALL
-        ret
+        iret
         

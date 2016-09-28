@@ -12,14 +12,15 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 extern void keyboard_handler();
+extern void system_call_handler();
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',
-  '7','8','9','0','\'','ก','\0','\0',
+  '7','8','9','0','\'','ยก','\0','\0',
   'q','w','e','r','t','y','u','i',
   'o','p','`','+','\0','\0','a','s',
-  'd','f','g','h','j','k','l','๑',
-  '\0','บ','\0','็','z','x','c','v',
+  'd','f','g','h','j','k','l','รฑ',
+  '\0','ยบ','\0','รง','z','x','c','v',
   'b','n','m',',','.','-','\0','*',
   '\0','\0','\0','\0','\0','\0','\0','\0',
   '\0','\0','\0','\0','\0','\0','\0','7',
@@ -48,7 +49,6 @@ void setInterruptHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
   idt[vector].flags           = flags;
   idt[vector].highOffset      = highWord((DWord)handler);
 }
-
 void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
 {
   /***********************************************************************/
@@ -82,6 +82,7 @@ void setIdt()
   
   set_handlers();
   setInterruptHandler(33,keyboard_handler, 0);
+  setTrapHandler(0x80, system_call_handler, 3);
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 

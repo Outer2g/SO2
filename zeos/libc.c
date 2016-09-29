@@ -49,11 +49,13 @@ int write(int fd,char* buffer,int size){
   in this case, 4. Then we call the interruption 0x80 and we process the result*/
 
   __asm__ volatile(
-    "int $0x80"
+    "movl $4,%%eax;"
+    "int $0x80;"
     : "=a" (ret), // return result of eax to variable ret
       "+b" (fd), // copy fd, in ebx
       "+c" (buffer),// copy buffer, in ecx
       "+d" (size) // copy size, in edx
+      
 );
   if (ret >= 0) return ret;
   else{ errno = -ret;return -1;}

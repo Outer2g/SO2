@@ -60,3 +60,15 @@ int write(int fd,char* buffer,int size){
   if (ret >= 0) return ret;
   else{ errno = -ret;return -1;}
 }
+int gettime(){
+    int ret = -1;
+    __asm__ volatile(
+        "movl $10,%%eax;"
+        "int $0x80;"
+        : "=a" (ret) // return result of eax to variable ret
+    );
+    return ret;
+}
+void perror(const char *str){
+    
+}

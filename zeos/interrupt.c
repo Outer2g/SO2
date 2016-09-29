@@ -13,6 +13,7 @@ Gate idt[IDT_ENTRIES];
 Register    idtR;
 extern void keyboard_handler();
 extern void system_call_handler();
+extern void clock_handler();
 char char_map[] =
 {
   '\0','\0','1','2','3','4','5','6',
@@ -82,6 +83,7 @@ void setIdt()
   
   set_handlers();
   setInterruptHandler(33,keyboard_handler, 0);
+  setInterruptHandler(32,clock_handler,0);
   setTrapHandler(0x80, system_call_handler, 3);
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */

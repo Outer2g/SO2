@@ -15,7 +15,7 @@
 
 #define LECTURA 0
 #define ESCRIPTURA 1
-
+extern int ZEOS_TICK;
 int check_fd(int fd, int permissions)
 {
   if (fd!=1) return -9; /*EBADF*/
@@ -49,6 +49,9 @@ int sys_write( int fd, char* buffer, int size){
   if (ret != 0 ) return -1; //error copying from user
   printed += sys_write_console(auxBuffer,size);
   return ret;
+}
+int sys_gettime(){
+    return ZEOS_TICK;
 }
 
 int sys_ni_syscall()

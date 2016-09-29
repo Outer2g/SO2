@@ -19,6 +19,8 @@ unsigned int *p_sys_size = (unsigned int *) KERNEL_START;
 unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
 extern char char_map[];
+//global variables
+int ZEOS_TICK;
 /************************/
 /** Auxiliar functions **/
 /************************/
@@ -69,13 +71,16 @@ void keyboard_routine(){
         //is a break
     }
 }
+void clock_routine(){ 
+    ++ZEOS_TICK;
+    zeos_show_clock();
+}
 /*
  *   Main entry point to ZEOS Operating System
  */
 int __attribute__((__section__(".text.main")))
   main(void)
 {
-
   set_eflags();
 
   /* Define the kernel segment registers  and a stack to execute the 'main' code */
@@ -88,6 +93,8 @@ int __attribute__((__section__(".text.main")))
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
   printk("Kernel Loaded!    ");
+  
+    ZEOS_TICK = 0;
 
 
   /* Initialize hardware data */
@@ -115,7 +122,7 @@ int __attribute__((__section__(".text.main")))
 
 
   printk("Entering user mode...");
-
+  
   enable_int();
   /*
    * We return from a 'theorical' call to a 'call gate' to reduce our privileges

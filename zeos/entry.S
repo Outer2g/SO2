@@ -88,7 +88,14 @@ ENTRY(keyboard_handler)
         EOI
         RESTORE_ALL
         iret
-
+        
+ENTRY(clock_handler)
+        SAVE_ALL
+        call clock_routine
+        EOI
+        RESTORE_ALL
+        iret
+        
 ENTRY(system_call_handler)
     SAVE_ALL
     cmpl  $0, %eax // Is syscall number negative?

@@ -13,13 +13,15 @@
 
 #include <sched.h>
 
+#include <errno.h>
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 extern int ZEOS_TICK;
 int check_fd(int fd, int permissions)
 {
-  if (fd!=1) return -9; /*EBADF*/
-  if (permissions!=ESCRIPTURA) return -13; /*EACCES*/
+  if (fd!=1) return -EBADF; /*EBADF*/
+  if (permissions!=ESCRIPTURA) return -EACCES; /*EACCES*/
   return 0;
 }
 
@@ -30,25 +32,25 @@ int sys_write( int fd, char* buffer, int size){
   if (ret != 0) return ret;
   //Checking buffer not null
   if (buffer == NULL || buffer[0] == '\0'){
-    return -1;
+    return -EFAULT;
   }
   //checking positive size
-  if (size <0) return -1;
+  if (size <0) return -EINVAL;
   char auxBuffer[30];
   int printed = 0;
   //we copy and print until the buffer cannot fully contain the text
   while(size >= 30){
   	ret = copy_from_user(buffer,auxBuffer,30);
-  	if (ret != 0 ) return -1; //error copying from user
+  	if (ret != 0) return ret; //error copying from user
   	printed += sys_write_console(auxBuffer,30);
   	buffer += 30;
   	size -= 30;
   }
   //we print the remainings
   ret = copy_from_user(buffer,auxBuffer,size);
-  if (ret != 0 ) return -1; //error copying from user
+  if (ret != 0 ) return ret; //error copying from user
   printed += sys_write_console(auxBuffer,size);
-  return ret;
+  return printed;
 }
 int sys_gettime(){
     return ZEOS_TICK;

@@ -36,7 +36,7 @@
     call *sys_call_table(,%eax,0x04)
     jmp fin
 err:
-    movl $-32, %eax
+    movl $-38, %eax
 fin:
     movl %eax,0x18(%esp)
     popl %ebx; popl %ecx; popl %edx; popl %esi; popl %edi; popl %ebp; popl %eax; popl %ds; popl %es; popl %fs; popl %gs

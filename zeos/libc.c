@@ -6,6 +6,7 @@
 
 #include <types.h>
 
+#include <errno.h>
 int errno;
 
 void itoa(int a, char *b)

@@ -79,8 +79,8 @@ void init_freequeue(){
     int current = 1;
     while (current < size){
         //list_add (anchor,&list)
-        struct task_struct auxTask = aux->task;
-        list_add(&(auxTask.list),&freequeue);
+        struct task_struct *auxTask = &(aux->task);
+        list_add(&(auxTask->list),&freequeue);
         ++aux;
         ++current;
     }

@@ -23,8 +23,6 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 #endif
 
 extern struct list_head blocked;
-
-
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
 {
@@ -70,9 +68,23 @@ void init_task1(void)
 
 
 void init_sched(){
-
+    init_freequeue();
+    //init readyqueue
+    INIT_LIST_HEAD(&readyqueue);
 }
-
+void init_freequeue(){
+    INIT_LIST_HEAD( &freequeue );
+    union task_union* aux = task;
+    int size = NR_TASKS;
+    int current = 1;
+    while (current < size){
+        //list_add (anchor,&list)
+        struct task_struct auxTask = aux->task;
+        list_add(&(auxTask.list),&freequeue);
+        ++aux;
+        ++current;
+    }
+}
 struct task_struct* current()
 {
   int ret_value;

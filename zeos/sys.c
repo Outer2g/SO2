@@ -31,7 +31,7 @@ int sys_write( int fd, char* buffer, int size){
   int ret = check_fd(fd,ESCRIPTURA);
   if (ret != 0) return ret;
   //Checking buffer not null
-  if (buffer == NULL || buffer[0] == '\0'){
+  if (buffer == NULL){
     return -EFAULT;
   }
   //checking positive size

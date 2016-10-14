@@ -74,8 +74,8 @@ void init_idle (void)
     realelement->stack[pos] = &cpu_idle;
     //push initial value to ebp (0)
     --pos;
-    realelement->stack[pos] = 0x00000000;
-    realelement->task.kernel_esp = pos;
+    realelement->stack[pos] = 0;
+    realelement->task.kernel_esp = &realelement->stack[pos];
     
     //delete the task from the freequeue
     list_del(e);
@@ -120,11 +120,31 @@ void init_freequeue(){
 }
 void inner_task_switch(union task_union* new){
     //update tss
-    tss.esp0 = &new->stack[KERNEL_STACK_SIZE];
+    tss.esp0 = &(new->stack[KERNEL_STACK_SIZE]);
     //update user mem
     set_cr3(new->task.dir_pages_baseAddr);
-    asn("push %ebp;"
-        "movl %esp,%ebp;"
+    //ebp value stored by C, save ebp to kernel_esp of the current task
+    struct task_struct* old = current();
+    __asm__ __volatile__(
+        "movl %%ebp, %0"
+        :
+        :"m"(old->kernel_esp)
+    );
+    //change current stack
+    __asm__ __volatile__(
+        "movl %0,%%esp"
+        :
+        :"m"(new->task.kernel_esp)
+    );
+
+    /*testing*/
+    if (current()->PID == 0) printk("ejecutando idle\n");
+    else if (current()->PID == 1) printk("ejecutando proceso 1\n");
+    /**/
+    //restore ebp and return
+    __asm__ __volatile__(
+        "popl %ebp;"
+        "ret"
     );
     
 }

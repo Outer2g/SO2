@@ -53,7 +53,7 @@ void cpu_idle(void)
 	__asm__ __volatile__("sti": : :"memory");
 
 	while(1)
-	{
+	{ 
 	;
 	}
 }
@@ -97,6 +97,8 @@ void init_task1(void)
     set_cr3(realelement->task.dir_pages_baseAddr);
     //delete task from the freequeue
     list_del(e);
+    //add it to readyqueue
+    list_add(&realelement->task.list,&readyqueue);
 }
 
 
@@ -137,10 +139,10 @@ void inner_task_switch(union task_union* new){
         :"m"(new->task.kernel_esp)
     );
 
-    /*testing*/
-    if (current()->PID == 0) printk("ejecutando idle\n");
-    else if (current()->PID == 1) printk("ejecutando proceso 1\n");
-    /**/
+    /*testing
+    if (new->task.PID == 0) printk("soc idle");
+    else printk("soy el otro");
+    */
     //restore ebp and return
     __asm__ __volatile__(
         "popl %ebp;"
@@ -156,9 +158,9 @@ void task_switch(union task_union* new){
         "pushl %edi;"
         "pushl %ebx");
     inner_task_switch(new);
-    asm("popl %esi;"
+    asm("popl %ebx;"
         "popl %edi;"
-        "popl %ebx;");
+        "popl %esi;");
 }
 struct task_struct* current()
 {

@@ -73,7 +73,8 @@ void keyboard_routine(){
 }
 void clock_routine(){ 
     ++ZEOS_TICK;
-    if(ZEOS_TICK >= 1000) task_switch(idle_task);
+    if(ZEOS_TICK == 1000)task_switch(idle_task);
+    if (ZEOS_TICK == 8000)task_switch(realelement);
     zeos_show_clock();
 }
 /*

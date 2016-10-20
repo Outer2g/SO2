@@ -71,6 +71,29 @@ int sys_fork()
   int PID=-1;
 
   // creates the child process
+  //get free new task if theres none, return error TODO
+  struct list_head *e = list_first(&freequeue);
+  union task_union * child = list_entry(e,struct task_struct,list);
+  //delete it from freequeue
+  list_del(e);
+  //add it to readyqueue
+  list_add(&child->task.list,&readyqueue);
+  union task_union * parent = current();
+  //copy parent data into child, nova taula? TODO
+  copy_data(parent,child,KERNEL_STACK_SIZE);
+  allocate_DIR(&child->task);
+  //check if we have enough pages
+  int allocated = 0;
+  int[NUM_PAG_CODE] frames;
+  for (int i = 0; i < NUM_PAG_CODE;++i){
+      new_ph_pag = allocate_frame();
+      if (new_ph_pag == -1) break;}
+  if (allocated < NUM_PAG_CODE) {
+      //dellocate
+      for (int i = 0; i<allocated;++i){
+          free_frame(frames[i]);
+    }
+}
   
   return PID;
 }

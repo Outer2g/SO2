@@ -43,6 +43,26 @@ int strlen(char *a)
   
   return i;
 }
+//fork system wrapper
+int fork(void){
+    int pid;
+    __asm__ volatile(
+    "movl $2,%%eax;"
+    "int $0x80;"
+    : "=a" (pid) // return result of eax to variable ret
+);
+    return pid;
+}
+//getpid system wrapper
+int getpid(void){
+    int pid;
+    __asm__ volatile(
+    "movl $20,%%eax;"
+    "int $0x80;"
+    : "=a" (pid) // return result of eax to variable ret
+);
+    return pid;
+}
 //write system wrapper
 int write(int fd,char* buffer,int size){
   int ret = -1;

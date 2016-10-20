@@ -34,6 +34,13 @@ int __attribute__ ((__section__(".text.main")))
         write(1,aux,strlen(aux));
         write(1,"\n",1);
     }*/
+    char buffer[32] = " PID = ";
+    write(1,buffer,strlen(buffer));
+    int x = getpid();
+    char *aux[32];
+    itoa(x,aux);
+    write(1,aux,strlen(aux));
+    write(1,"\n",1);
     while(1);
     return 0;
 }

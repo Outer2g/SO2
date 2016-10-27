@@ -106,6 +106,7 @@ void init_sched(){
     init_freequeue();
     //init readyqueue
     INIT_LIST_HEAD(&readyqueue);
+    global_pid = 1;
 }
 void init_freequeue(){
     INIT_LIST_HEAD( &freequeue );

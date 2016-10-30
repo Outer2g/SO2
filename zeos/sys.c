@@ -66,19 +66,24 @@ int sys_getpid()
 	return current()->PID;
 }
 
+int ret_from_fork(){
+    return 0;
+}
+
 int sys_fork()
 {
   int PID=-1;
   // creates the child process
   //get free new task if theres none, return error
+  if (list_empty(&freequeue)) return -ENOMEM;
   struct list_head *e = list_first(&freequeue);
-  
-    if (list_empty(e)) return -ENOMEM;
+  list_del(e);
   union task_union * child = list_entry(e,struct task_struct,list);
   
   union task_union * parent = current();
   //copy parent data into child, nova taula? 
-  copy_data(parent,child,KERNEL_STACK_SIZE);
+  copy_data(parent,child,sizeof(union task_union));
+
   allocate_DIR(&child->task);
   //check if we have enough pages
   int i,j;
@@ -91,6 +96,8 @@ int sys_fork()
           for (j = 0; j < i-1; j++){
               free_frame(RP[j]);
         }
+        //process back to freequeue
+        list_add_tail(&(child->task.list),&freequeue);
         return -ENOMEM;
     }
   }
@@ -99,11 +106,27 @@ int sys_fork()
   page_table_entry * parent_PT = get_PT(current());
   
   // child will point to kernel pages and parent code
-  for (i=0;i<NUM_PAG_KERNEL + NUM_PAG_CODE;i++){
+  for (i=0;i<PAG_LOG_INIT_DATA;i++){
       int frame = get_frame(parent_PT,i);
       set_ss_pag(child_PT,i,frame);
   }
   // e) ii) copy user data+stack pages from parent to child, using tmp page
+  int unusedmem = PAG_LOG_INIT_DATA + NUM_PAG_DATA;
+  for (i = 0; i < NUM_PAG_DATA; i++)
+  {
+      // assignem els frames a la part de data de child
+    set_ss_pag(child_PT, PAG_LOG_INIT_DATA + i, RP[i]);
+    // cal inicialitzar noves entrades de la taula de pagines del pare: en aquest cas , despres de la regio data +stack ja
+    set_ss_pag(parent_PT, unusedmem + i,RP[i]);
+      // aprofito per fer la copia (la taula de pagines actual segueix sent la del pare)
+      // al copiar cal transformar en adreces (eren l'indeX de la TP)
+    copy_data((void *) ((PAG_LOG_INIT_DATA + i) << 12), (void *) ((unusedmem + i) << 12), PAGE_SIZE); // Page size son 4KB
+    // unlink parent pt -- physycal pages
+    del_ss_pag(parent_PT, unusedmem + i);
+  }
+  //flush tlb
+  //set_cr3(parent->task.dir_pages_baseAddr);
+  /*
   int finalParent = NUM_PAG_CODE + NUM_PAG_DATA + NUM_PAG_KERNEL + 1;
   for (i = 0; i < NUM_PAG_DATA; i++){
       set_ss_pag(child_PT,NUM_PAG_KERNEL+NUM_PAG_CODE + i,RP[i]);
@@ -112,24 +135,24 @@ int sys_fork()
       copy_data((void *)((NUM_PAG_KERNEL + NUM_PAG_CODE + i) * PAGE_SIZE),(void*)((finalParent + i)* PAGE_SIZE),PAGE_SIZE);
       //del tmp page after completing the copy
       del_ss_pag(parent_PT,finalParent +i);
-  }
+  }*/
   //assign the new process a new PID
   int childPID = next_pid();
   child->task.PID = childPID;
+  child->task.state = ST_READY;
+  child->task.quantum = DEFAULT_QUANTUM;
   //modify not common fields of the child
   //prepare stack for task_switch
-  
-  //delete it from freequeue
-  list_del(e);
+  child->stack[KERNEL_STACK_SIZE - 18] = &(ret_from_fork);
+  child->stack[KERNEL_STACK_SIZE - 19] = 0;
+  child->task.kernel_esp = &child->stack[KERNEL_STACK_SIZE - 19];
+  //delete it from freequeue TODO
   //add it to readyqueue
-  list_add(&child->task.list,&readyqueue);
+  list_add_tail(&(child->task.list),&readyqueue);
 
 
   
   return childPID;
-}
-int ret_from_fork(){
-    return 0;
 }
 int next_pid(){
     ++global_pid;

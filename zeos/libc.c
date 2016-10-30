@@ -51,6 +51,10 @@ int fork(void){
     "int $0x80;"
     : "=a" (pid) // return result of eax to variable ret
 );
+    if (pid<0){
+      errno = -pid;
+      return -1;
+    }
     return pid;
 }
 //getpid system wrapper

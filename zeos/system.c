@@ -73,11 +73,13 @@ void keyboard_routine(){
 }
 void clock_routine(){ 
     ++ZEOS_TICK;
-    if(ZEOS_TICK == 1000){printk("estoy en idle \n");task_switch(idle_task);}
-    
-    struct list_head * e = list_first(&readyqueue);
+    //if(ZEOS_TICK == 1000){printk("estoy en idle \n");task_switch(idle_task);}
+    /*struct list_head * e = list_first(&readyqueue);
     union task_union * realelement = list_entry( e, struct task_struct, list);
-    if (ZEOS_TICK == 4000){ task_switch(realelement);printk("estoy en el otro \n");}
+    if (ZEOS_TICK == 500){ task_switch(realelement);printk("estoy en el otro \n");}
+    if (ZEOS_TICK == 800){ task_switch(realelement);printk("estoy en el otro \n");}
+    if (ZEOS_TICK == 1000){ task_switch(realelement);printk("estoy en el otro \n");}*/
+    schedule();
     zeos_show_clock();
 }
 /*

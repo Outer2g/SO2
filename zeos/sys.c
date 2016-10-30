@@ -111,7 +111,7 @@ int sys_fork()
       set_ss_pag(child_PT,i,frame);
   }
   // e) ii) copy user data+stack pages from parent to child, using tmp page
-  int unusedmem = PAG_LOG_INIT_DATA + NUM_PAG_DATA;
+ /* int unusedmem = PAG_LOG_INIT_DATA + NUM_PAG_DATA;
   for (i = 0; i < NUM_PAG_DATA; i++)
   {
       // assignem els frames a la part de data de child
@@ -123,10 +123,10 @@ int sys_fork()
     copy_data((void *) ((PAG_LOG_INIT_DATA + i) << 12), (void *) ((unusedmem + i) << 12), PAGE_SIZE); // Page size son 4KB
     // unlink parent pt -- physycal pages
     del_ss_pag(parent_PT, unusedmem + i);
-  }
+  }*/
   //flush tlb
-  //set_cr3(parent->task.dir_pages_baseAddr);
-  /*
+  set_cr3(parent->task.dir_pages_baseAddr);
+  
   int finalParent = NUM_PAG_CODE + NUM_PAG_DATA + NUM_PAG_KERNEL + 1;
   for (i = 0; i < NUM_PAG_DATA; i++){
       set_ss_pag(child_PT,NUM_PAG_KERNEL+NUM_PAG_CODE + i,RP[i]);
@@ -135,12 +135,12 @@ int sys_fork()
       copy_data((void *)((NUM_PAG_KERNEL + NUM_PAG_CODE + i) * PAGE_SIZE),(void*)((finalParent + i)* PAGE_SIZE),PAGE_SIZE);
       //del tmp page after completing the copy
       del_ss_pag(parent_PT,finalParent +i);
-  }*/
+  }
   //assign the new process a new PID
   int childPID = next_pid();
   child->task.PID = childPID;
   child->task.state = ST_READY;
-  child->task.quantum = DEFAULT_QUANTUM;
+  init_stats(&child->task.process_stats);
   //modify not common fields of the child
   //prepare stack for task_switch
   child->stack[KERNEL_STACK_SIZE - 18] = &(ret_from_fork);
@@ -160,5 +160,35 @@ int next_pid(){
 }
 
 void sys_exit()
-{  
+{ 
+  struct task_struct * curr = current();
+  page_table_entry * currentPT = get_PT(curr);
+  //free the non-shared frames
+  int i;
+  for(i = 0; i< NUM_PAG_DATA;i++){
+    free_frame(get_frame(currentPT,PAG_LOG_INIT_DATA+i));
+    del_ss_pag(currentPT,PAG_LOG_INIT_DATA+i);
+  }
+  curr->state = ST_DEAD;
+  //add task to freequeue
+  list_add(&curr->list,&freequeue);
+  //execute next process
+  sched_next_rr();
+}
+
+int sys_get_stats(int pid,struct stats *st){
+  if (!access_ok(VERIFY_WRITE,st,sizeof(struct stats))) return -EFAULT;
+
+  if (pid < 0) return -EINVAL;
+
+  int i;
+  for (i=0;i<NR_TASKS;i++){
+    if(task[i].task.PID==pid){
+      if(task[i].task.state == ST_DEAD) return -ESRCH;
+      task[i].task.process_stats.remaining_ticks = ticksExec;
+      copy_to_user(&(task[i].task.process_stats),st,sizeof(struct stats));
+      return 0;
+    }
+  }
+  return -ESRCH;
 }

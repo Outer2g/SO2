@@ -57,6 +57,26 @@ int fork(void){
     }
     return pid;
 }
+//exit system wrapper
+void exit(void){
+    __asm__ volatile(
+    "movl $1,%eax;"
+    "int $0x80"
+);
+}
+//get_stats system wrapper
+int get_stats(int pid,struct stats *st){
+    int ret;
+    __asm__ volatile(
+    "movl $35,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (pid),
+      "+c" (st)
+);
+    if (ret <0){errno = -ret;return-1;}
+    return ret;
+}
 //getpid system wrapper
 int getpid(void){
     int pid;

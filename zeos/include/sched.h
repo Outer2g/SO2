@@ -7,17 +7,19 @@
 
 #include <list.h>
 #include <types.h>
+#include <stats.h>
 #include <mm_address.h>
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
 #define DEFAULT_QUANTUM 10
 
-enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
+enum state_t { ST_RUN, ST_READY, ST_BLOCKED,ST_DEAD };
 
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
-	int quantum;
+  int quantum;
+  struct stats process_stats;
   unsigned long kernel_esp;
   enum state_t state;
   struct list_head list;
@@ -49,11 +51,17 @@ void init_idle(void);
 
 void init_sched(void);
 
+void init_stats(struct stats *st);
+
 void init_freequeue(void);
 
 struct task_struct * current();
 
 void update_sched_data_rr(void);
+
+void update_stats_user_time(struct stats *st);
+
+void update_stats_system_time(struct stats *st);
 
 void task_switch(union task_union*t);
 

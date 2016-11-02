@@ -79,7 +79,6 @@ int sys_fork()
   struct list_head *e = list_first(&freequeue);
   list_del(e);
   union task_union * child = list_entry(e,struct task_struct,list);
-  
   union task_union * parent = current();
   //copy parent data into child, nova taula? 
   copy_data(parent,child,sizeof(union task_union));
@@ -139,9 +138,9 @@ int sys_fork()
   //assign the new process a new PID
   int childPID = next_pid();
   child->task.PID = childPID;
+  //modify not common fields of the child
   child->task.state = ST_READY;
   init_stats(&child->task.process_stats);
-  //modify not common fields of the child
   //prepare stack for task_switch
   child->stack[KERNEL_STACK_SIZE - 18] = &(ret_from_fork);
   child->stack[KERNEL_STACK_SIZE - 19] = 0;

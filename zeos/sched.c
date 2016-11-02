@@ -102,6 +102,7 @@ void init_task1(void)
     //set page directory as the current
     set_cr3(realelement->task.dir_pages_baseAddr);
     realelement->task.state = ST_RUN;
+    realelement->task.process_stats.total_trans++;
     //delete task from the freequeue
     list_del(e);
 }
@@ -201,11 +202,10 @@ void update_stats_user_time(struct stats *st){
 }
 
 void update_stats_system_time(struct stats *st){
-    void update_stats_user_time(struct stats *st){
     unsigned long current_ticks = get_ticks();
     st->system_ticks += current_ticks - st->elapsed_total_ticks;
     st->elapsed_total_ticks = current_ticks;
-}
+
 }
 
 void sched_next_rr(void){

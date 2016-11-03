@@ -110,7 +110,7 @@ int sys_fork()
       set_ss_pag(child_PT,i,frame);
   }
   // e) ii) copy user data+stack pages from parent to child, using tmp page
- /* int unusedmem = PAG_LOG_INIT_DATA + NUM_PAG_DATA;
+  int unusedmem = PAG_LOG_INIT_DATA + NUM_PAG_DATA;
   for (i = 0; i < NUM_PAG_DATA; i++)
   {
       // assignem els frames a la part de data de child
@@ -122,25 +122,14 @@ int sys_fork()
     copy_data((void *) ((PAG_LOG_INIT_DATA + i) << 12), (void *) ((unusedmem + i) << 12), PAGE_SIZE); // Page size son 4KB
     // unlink parent pt -- physycal pages
     del_ss_pag(parent_PT, unusedmem + i);
-  }*/
+  }
   //flush tlb
   set_cr3(parent->task.dir_pages_baseAddr);
-  
-  int finalParent = NUM_PAG_CODE + NUM_PAG_DATA + NUM_PAG_KERNEL + 1;
-  for (i = 0; i < NUM_PAG_DATA; i++){
-      set_ss_pag(child_PT,NUM_PAG_KERNEL+NUM_PAG_CODE + i,RP[i]);
-      //tmp page
-      set_ss_pag(parent_PT, finalParent + i, RP[i]);
-      copy_data((void *)((NUM_PAG_KERNEL + NUM_PAG_CODE + i) * PAGE_SIZE),(void*)((finalParent + i)* PAGE_SIZE),PAGE_SIZE);
-      //del tmp page after completing the copy
-      del_ss_pag(parent_PT,finalParent +i);
-  }
   //assign the new process a new PID
   int childPID = next_pid();
   child->task.PID = childPID;
   //modify not common fields of the child
   child->task.state = ST_READY;
-  init_stats(&child->task.process_stats);
   //prepare stack for task_switch
   child->stack[KERNEL_STACK_SIZE - 18] = &(ret_from_fork);
   child->stack[KERNEL_STACK_SIZE - 19] = 0;

@@ -65,6 +65,7 @@ void init_idle (void)
     struct list_head * e = list_first( &freequeue );
     union task_union * realelement = list_entry( e, struct task_struct, list);
     set_quantum(&realelement->task,DEFAULT_QUANTUM);
+    ticksExec = DEFAULT_QUANTUM;
     init_stats(&realelement->task.process_stats);
     realelement->task.PID = 0;
     allocate_DIR(&realelement->task);
@@ -179,7 +180,7 @@ void update_sched_data_rr(void){
 int needs_sched_rr(void){
     //decides if its necessary to change process, it will change if the executed time is over the 
     //default value (in my case a value that its saved in the task, called quantum)
-    return (ticksExec <= 0 && !list_empty(&readyqueue));
+    return (ticksExec <= 0);
 }
 void update_process_state_rr(struct task_struct *t,struct  list_head *dst_queue){
     //this function updates the state of the process t and places it in the corresponding queue
@@ -191,8 +192,7 @@ void update_process_state_rr(struct task_struct *t,struct  list_head *dst_queue)
         else{ 
             t->state = ST_READY;}
     }
-    else{ t->state = ST_RUN;
-    t->process_stats.total_trans++;}
+    else{ t->state = ST_RUN;}
 }
 
 void update_stats_user_time(struct stats *st){
@@ -222,10 +222,8 @@ void sched_next_rr(void){
     ticksExec = get_quantum(&realelement->task);
 
     update_stats_system_time(&current()->process_stats);
-    update_stats_user_time(&current()->process_stats);
     realelement->task.process_stats.total_trans++;
-
-    task_switch(realelement);
+    if(current() != realelement) task_switch(realelement);
 }
 void schedule(){
     update_sched_data_rr();

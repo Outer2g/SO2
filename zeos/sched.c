@@ -15,7 +15,7 @@ union task_union protected_tasks[NR_TASKS+2]
 
 union task_union *task = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
 struct task_struct *idle_task;
-
+int info_dir[NR_TASKS];
 
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
@@ -39,13 +39,30 @@ page_table_entry * get_PT (struct task_struct *t)
 
 int allocate_DIR(struct task_struct *t) 
 {
+	/* Original allocate_DIR
 	int pos;
 
 	pos = ((int)t-(int)task)/sizeof(union task_union);
 
 	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos]; 
 
+	return 1;*/
+	int pos;
+
+	pos = ((int)t-(int)task)/sizeof(union task_union);
+
+	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
+
+	info_dir[pos] = 1; //nomes un proces estara utilitzant l'espai
+	
+	t->pos_dir = pos;
+
 	return 1;
+}
+int get_pos_dir_allocated(struct task_struct *t)
+{
+	//from allocate dir
+	return ((int)t-(int)task)/sizeof(union task_union);
 }
 
 void cpu_idle(void)

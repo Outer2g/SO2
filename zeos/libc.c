@@ -105,6 +105,21 @@ int write(int fd,char* buffer,int size){
   if (ret >= 0) return ret;
   else{ errno = -ret;return -1;}
 }
+int clone(void(*function)(void), void *stack){
+	//function = starting address of the function to be executed
+	//stack = starting address of a memory region to be used as stack
+	int ret;
+	__asm__ volatile(
+    "movl $19,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (function), // copy fd, in ebx
+      "+c" (stack)// copy buffer, in ecx
+      
+);
+	if (ret >= 0) return ret;
+	else {errno = -ret; return -1;}
+}
 int gettime(){
     int ret = -1;
     __asm__ volatile(
@@ -114,6 +129,10 @@ int gettime(){
     );
     return ret;
 }
+int sem_wait(int n_sem){return 1;}
+int sem_init(int n_sem,unsigned int value){return 1;}
+int sem_signal(int n_sem){return 1;}
+int sem_destroy(int n_sem){return 1;}
 void perror(const char *str){
     
 }

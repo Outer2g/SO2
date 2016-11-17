@@ -22,6 +22,7 @@ struct task_struct {
   struct stats process_stats;
   unsigned long kernel_esp;
   enum state_t state;
+  unsigned int pos_dir;
   struct list_head list;
   page_table_entry * dir_pages_baseAddr;
 };
@@ -34,6 +35,7 @@ int global_pid;
 extern union task_union protected_tasks[NR_TASKS+2];
 extern union task_union *task; /* Vector de tasques */
 extern struct task_struct *idle_task;
+extern int info_dir[NR_TASKS];
 struct list_head freequeue;
 struct list_head readyqueue;
 int ticksExec;

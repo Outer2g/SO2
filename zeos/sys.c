@@ -69,6 +69,7 @@ int sys_getpid()
 int ret_from_fork(){
     return 0;
 }
+void ret_from_clone(){}
 
 int sys_fork()
 {
@@ -142,6 +143,39 @@ int sys_fork()
   
   return childPID;
 }
+
+int sys_clone(void(*function)(void),void *stack){
+	//checking correct address
+	if (!access_ok(VERIFY_READ,function, sizeof(void *))) return -EACCES;
+	if (!access_ok(VERIFY_READ,stack, sizeof(void *))) return -EACCES;
+	if (list_empty(&freequeue)){
+		//out of PCBs
+		return -5; // nomem
+	}
+	struct list_head *e = list_first(&freequeue);
+	union task_union *thread = list_head_to_task_struct(e);
+	list_del(e);
+	
+	struct task_struct *parent = current();
+	
+	unsigned int pos = parent->pos_dir;
+	++info_dir[pos];
+	thread->task.pos_dir = pos;
+	
+	//copy task_union parent to child
+	copy_data(parent,thread,sizeof(union task_union));
+	
+	thread->task.PID = next_pid();
+	update_process_state_rr(thread,&readyqueue);
+	
+	thread->stack[1022] = stack;
+	thread->stack[1019] = function;
+	thread->stack[1018] = ret_from_fork;
+	thread->task.kernel_esp = &thread->stack[1017];
+	
+	return thread->task.PID;
+}
+
 int next_pid(){
     ++global_pid;
     return global_pid;
@@ -151,7 +185,7 @@ void sys_exit()
 { 
   struct task_struct * curr = current();
   page_table_entry * currentPT = get_PT(curr);
-  //free the non-shared frames
+  /* old 
   int i;
   for(i = 0; i< NUM_PAG_DATA;i++){
     free_frame(get_frame(currentPT,PAG_LOG_INIT_DATA+i));
@@ -159,6 +193,20 @@ void sys_exit()
   }
   curr->state = ST_DEAD;
   //add task to freequeue
+  list_add(&curr->list,&freequeue);
+  */
+  //free only non-shared frames
+  int i;
+  --info_dir[curr->pos_dir];
+  if (info_dir[curr->pos_dir] == 0){
+  	//no one pointing at this dir => free the memory
+  	for ( i = 0; i < NUM_PAG_DATA;++i){
+  		int frame = get_frame(currentPT,PAG_LOG_INIT_DATA + i);
+  		free_frame(frame);
+  		del_ss_pag(currentPT,PAG_LOG_INIT_DATA + i);
+  	}
+  }
+  curr->state = ST_DEAD;
   list_add(&curr->list,&freequeue);
   //execute next process
   sched_next_rr();

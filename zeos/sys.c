@@ -228,3 +228,66 @@ int sys_get_stats(int pid,struct stats *st){
   }
   return -ESRCH;
 }
+
+int sys_sem_init(int n_sem, unsigned int value)
+{
+    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    struct semaphore mysem = sem_array[n_sem];
+    if (mysem.ownerPID != -1) return -4;
+    //else this semaphore is free
+    mysem.ownerPID = current()->PID;
+    mysem.value = value;
+    INIT_LIST_HEAD(&mysem.myblocked);
+    return 0;
+}
+
+int sys_sem_wait(int n_sem)
+{
+    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    struct semaphore mysem = sem_array[n_sem];
+    if (mysem.ownerPID == -1) return -1;
+    if(mysem.value > 0){
+        mysem.value -= 1;
+    }
+    else{
+
+        sched_update_queues_state(&mysem.myblocked,current());
+        sched_switch_process();
+        current()->state = ST_BLOCKED;
+    }
+    return 0;
+}
+
+int sys_sem_signal(int n_sem)
+{
+    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    struct semaphore mysem = sem_array[n_sem];
+    if (mysem.ownerPID == -1) return -1;
+    if(list_empty(&mysem.myblocked) == 1){
+        mysem.value += 1;
+    }
+    else{
+        struct list_head *e = list_first(&mysem.myblocked);
+        struct task_struct *t = list_head_to_task_struct(e);
+        t->state=ST_READY;
+        sched_update_queues_state(&readyqueue,t);
+        list_del(e);
+    }
+    return 0;
+}
+
+int sys_sem_destroy(int n_sem)
+{
+    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    struct semaphore mysem = sem_array[n_sem];
+    if(mysem.ownerPID != current()->PID) return -1;
+    while(list_empty(&mysem.myblocked) == 0){
+        struct list_head *e = list_first(&mysem.myblocked);
+        struct task_struct *t = list_head_to_task_struct(e);
+      sched_update_queues_state(&readyqueue,t);
+        t->state=ST_READY;
+        list_del(e);
+    }
+    mysem.ownerPID = -1;
+    return 0;
+}

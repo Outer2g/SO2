@@ -129,10 +129,55 @@ int gettime(){
     );
     return ret;
 }
-int sem_wait(int n_sem){return 1;}
-int sem_init(int n_sem,unsigned int value){return 1;}
-int sem_signal(int n_sem){return 1;}
-int sem_destroy(int n_sem){return 1;}
+int sem_init(int n_sem,unsigned int value){
+  int ret;
+  __asm__ volatile(
+    "movl $21,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (n_sem), // copy fd, in ebx
+      "+c" (value)// copy buffer, in ecx
+      
+);
+  if (ret >= 0) return ret;
+  else {errno = -ret; return -1;}
+}
+int sem_wait(int n_sem){
+  int ret;
+  __asm__ volatile(
+    "movl $22,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (n_sem) // copy fd, in ebx
+      
+);
+  if (ret >= 0) return ret;
+  else {errno = -ret; return -1;}
+}
+int sem_signal(int n_sem){
+int ret;
+  __asm__ volatile(
+    "movl $23,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (n_sem) // copy fd, in ebx
+      
+);
+  if (ret >= 0) return ret;
+  else {errno = -ret; return -1;}
+  }
+int sem_destroy(int n_sem){
+  int ret;
+  __asm__ volatile(
+    "movl $24,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (n_sem) // copy fd, in ebx
+      
+);
+  if (ret >= 0) return ret;
+  else {errno = -ret; return -1;}
+}
 void perror(const char *str){
     
 }

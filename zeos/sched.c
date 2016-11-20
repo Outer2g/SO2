@@ -16,6 +16,7 @@ union task_union protected_tasks[NR_TASKS+2]
 union task_union *task = &protected_tasks[1]; /* == union task_union task[NR_TASKS] */
 struct task_struct *idle_task;
 int info_dir[NR_TASKS];
+struct semaphore sem_array[NR_SEM];
 
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
@@ -47,6 +48,17 @@ int allocate_DIR(struct task_struct *t)
 	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos]; 
 
 	return 1;*/
+     /*int i;
+    for (i = 0; i < NR_TASKS; ++i) {
+        if (info_dir[i] <= 0) {
+            t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[i];
+            info_dir[i] = 1;
+            return 1;
+        }
+    }
+    // we should never get here
+    return -1;*/
+
 	int pos;
 
 	pos = ((int)t-(int)task)/sizeof(union task_union);
@@ -64,6 +76,7 @@ int get_pos_dir_allocated(struct task_struct *t)
 	//from allocate dir
 	return ((int)t-(int)task)/sizeof(union task_union);
 }
+
 
 void cpu_idle(void)
 {
@@ -137,6 +150,7 @@ void init_stats(struct stats *st){
 
 void init_sched(){
     init_freequeue();
+    init_semaphore();
     //init readyqueue
     INIT_LIST_HEAD(&readyqueue);
     global_pid = 1;
@@ -250,6 +264,7 @@ void schedule(){
         sched_next_rr();
     }
 }
+
 void task_switch(union task_union* new){
     //new pointer to the task_union of the process that will be executed 
     //saving registers esi edi ebx
@@ -273,3 +288,13 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+
+void init_semaphore()
+{
+    int i = 0;
+    for(i = 0; i < 20; ++i){
+        sem_array[i].ownerPID = -1;
+        sem_array[i].value = 0;
+        //iniciem la llista en iniciar el semàfor
+    }
+}

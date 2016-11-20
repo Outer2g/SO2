@@ -11,6 +11,7 @@
 #include <mm_address.h>
 
 #define NR_TASKS      10
+#define NR_SEM  20
 #define KERNEL_STACK_SIZE	1024
 #define DEFAULT_QUANTUM 10
 
@@ -27,6 +28,12 @@ struct task_struct {
   page_table_entry * dir_pages_baseAddr;
 };
 
+struct semaphore {
+  unsigned int value;
+  int ownerPID;
+  struct list_head myblocked;
+};
+
 union task_union {
   struct task_struct task;
   unsigned long stack[KERNEL_STACK_SIZE];    /* pila de sistema, per procés */
@@ -36,6 +43,7 @@ extern union task_union protected_tasks[NR_TASKS+2];
 extern union task_union *task; /* Vector de tasques */
 extern struct task_struct *idle_task;
 extern int info_dir[NR_TASKS];
+extern struct semaphore sem_array[NR_SEM];
 struct list_head freequeue;
 struct list_head readyqueue;
 int ticksExec;
@@ -60,6 +68,10 @@ void init_freequeue(void);
 struct task_struct * current();
 
 void update_sched_data_rr(void);
+
+void (* sched_update_queues_state)(struct list_head* ls, struct task_struct * task);
+
+void (* sched_switch_process)();
 
 void update_stats_user_time(struct stats *st);
 

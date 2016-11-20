@@ -231,21 +231,25 @@ int sys_get_stats(int pid,struct stats *st){
 
 int sys_sem_init(int n_sem, unsigned int value)
 {
-    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    if (n_sem >= NR_SEM || n_sem < 0) return -EINVAL;
     struct semaphore mysem = sem_array[n_sem];
-    if (mysem.ownerPID != -1) return -4;
+    if (mysem.ownerPID != -1) return -EBUSY;
     //else this semaphore is free
-    mysem.ownerPID = current()->PID;
-    mysem.value = value;
-    INIT_LIST_HEAD(&mysem.myblocked);
+    else{
+	    int aux = current()->PID;
+	    mysem.ownerPID = aux;
+	    sem_array[n_sem].value = value;
+	    INIT_LIST_HEAD(&mysem.myblocked);
+	    sem_array[n_sem] = mysem;
+	}
     return 0;
 }
 
 int sys_sem_wait(int n_sem)
 {
-    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    if (n_sem >= NR_SEM || n_sem < 0) return -EINVAL;
     struct semaphore mysem = sem_array[n_sem];
-    if (mysem.ownerPID == -1) return -1;
+    if (mysem.ownerPID == -1) return -EINVAL;
     if(mysem.value > 0){
         mysem.value -= 1;
     }
@@ -260,9 +264,9 @@ int sys_sem_wait(int n_sem)
 
 int sys_sem_signal(int n_sem)
 {
-    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    if (n_sem >= NR_SEM || n_sem < 0) return -EINVAL;
     struct semaphore mysem = sem_array[n_sem];
-    if (mysem.ownerPID == -1) return -1;
+    if (mysem.ownerPID == -1) return -EINVAL;
     if(list_empty(&mysem.myblocked) == 1){
         mysem.value += 1;
     }
@@ -278,13 +282,14 @@ int sys_sem_signal(int n_sem)
 
 int sys_sem_destroy(int n_sem)
 {
-    if (n_sem >= NR_SEM || n_sem < 0) return -1;
+    if (n_sem >= NR_SEM || n_sem < 0) return -EINVAL;
     struct semaphore mysem = sem_array[n_sem];
-    if(mysem.ownerPID != current()->PID) return -1;
+    if (mysem.ownerPID == -1) return -EINVAL;
+    if(mysem.ownerPID != current()->PID) return -EPERM;
     while(list_empty(&mysem.myblocked) == 0){
         struct list_head *e = list_first(&mysem.myblocked);
         struct task_struct *t = list_head_to_task_struct(e);
-      sched_update_queues_state(&readyqueue,t);
+        sched_update_queues_state(&readyqueue,t);
         t->state=ST_READY;
         list_del(e);
     }

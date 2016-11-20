@@ -29,8 +29,8 @@ struct task_struct {
 };
 
 struct semaphore {
-  unsigned int value;
   int ownerPID;
+  unsigned int value;
   struct list_head myblocked;
 };
 

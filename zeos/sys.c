@@ -240,7 +240,7 @@ int sys_sem_init(int n_sem, unsigned int value)
 	    mysem.ownerPID = aux;
 	    sem_array[n_sem].value = value;
 	    INIT_LIST_HEAD(&mysem.myblocked);
-	    sem_array[n_sem] = mysem;
+	    //sem_array[n_sem] = mysem;
 	}
     return 0;
 }

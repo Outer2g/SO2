@@ -31,6 +31,7 @@ struct task_struct {
 struct semaphore {
   int ownerPID;
   unsigned int value;
+  int toDestroy;
   struct list_head myblocked;
 };
 
@@ -68,10 +69,6 @@ void init_freequeue(void);
 struct task_struct * current();
 
 void update_sched_data_rr(void);
-
-void (* sched_update_queues_state)(struct list_head* ls, struct task_struct * task);
-
-void (* sched_switch_process)();
 
 void update_stats_user_time(struct stats *st);
 

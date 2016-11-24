@@ -33,6 +33,8 @@ int __attribute__ ((__section__(".text.main")))
     write(1,aux,strlen(aux));
     write(1,"\n",1);*/
     runjp();
+	sem_init(1,0);
+	sem_init(1,0);
     while(1);
     return 0;
 }

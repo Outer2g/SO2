@@ -48,28 +48,18 @@ int allocate_DIR(struct task_struct *t)
 	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos]; 
 
 	return 1;*/
-     /*int i;
-    for (i = 0; i < NR_TASKS; ++i) {
-        if (info_dir[i] <= 0) {
-            t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[i];
-            info_dir[i] = 1;
-            return 1;
-        }
-    }
-    // we should never get here
-    return -1;*/
 
 	int pos;
+	for (pos = 0; pos < NR_TASKS; ++pos){
+		if (info_dir[pos] == 0){
+			t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
+			info_dir[pos] = 1; //nomes un proces estara utilitzant l'espai
+			t->pos_dir = pos;
+			return 1;	
+		}
+	}
 
-	pos = ((int)t-(int)task)/sizeof(union task_union);
-
-	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos];
-
-	info_dir[pos] = 1; //nomes un proces estara utilitzant l'espai
-	
-	t->pos_dir = pos;
-
-	return 1;
+	return -1;
 }
 int get_pos_dir_allocated(struct task_struct *t)
 {
@@ -147,10 +137,16 @@ void init_stats(struct stats *st){
     st->total_trans = 0;
     st->remaining_ticks = get_ticks();
 }
-
+void init_DIRs(){
+	int i = 0;
+	for ( i=0; i < NR_TASKS; i++){
+		info_dir[i] = 0;
+	}
+}
 void init_sched(){
     init_freequeue();
     init_semaphore();
+    init_DIRs();
     //init readyqueue
     INIT_LIST_HEAD(&readyqueue);
     global_pid = 1;
@@ -295,6 +291,7 @@ void init_semaphore()
     for(i = 0; i < 20; ++i){
         sem_array[i].ownerPID = -1;
         sem_array[i].value = 0;
+        sem_array[i].toDestroy = 0;
         //iniciem la llista en iniciar el semàfor
     }
 }

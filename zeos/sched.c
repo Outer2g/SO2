@@ -156,7 +156,7 @@ void init_freequeue(){
     union task_union* aux = task;
     int size = NR_TASKS;
     int current = 1;
-    while (current < size){
+    while (current <= size){
         //list_add (anchor,&list)
         struct task_struct *auxTask = &(aux->task);
         list_add(&(auxTask->list),&freequeue);

@@ -32,9 +32,7 @@ int __attribute__ ((__section__(".text.main")))
     itoa(x,aux);
     write(1,aux,strlen(aux));
     write(1,"\n",1);*/
-    runjp();
-	sem_init(1,0);
-	sem_init(1,0);
+    runjp_rank(9,9);
     while(1);
     return 0;
 }

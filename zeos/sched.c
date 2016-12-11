@@ -146,6 +146,7 @@ void init_DIRs(){
 void init_sched(){
     init_freequeue();
     init_semaphore();
+    init_keyboard();
     init_DIRs();
     //init readyqueue
     INIT_LIST_HEAD(&readyqueue);
@@ -164,6 +165,12 @@ void init_freequeue(){
         ++current;
     }
 }
+
+void init_keyboard(void){
+	INIT_LIST_HEAD(&keyboardqueue);
+	init_cbuff(&keyboardbuff);
+}
+
 void inner_task_switch(union task_union* new){
     //update tss
     tss.esp0 = &(new->stack[KERNEL_STACK_SIZE]);

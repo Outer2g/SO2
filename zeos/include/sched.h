@@ -6,6 +6,7 @@
 #define __SCHED_H__
 
 #include <list.h>
+#include <cbuff.h>
 #include <types.h>
 #include <stats.h>
 #include <mm_address.h>
@@ -27,6 +28,10 @@ struct task_struct {
   struct list_head list;
   page_table_entry * dir_pages_baseAddr;
 };
+
+struct list_head keyboardqueue;
+struct c_buffer keyboardbuff;
+
 
 struct semaphore {
   int ownerPID;
@@ -65,6 +70,8 @@ void init_sched(void);
 void init_stats(struct stats *st);
 
 void init_freequeue(void);
+
+void init_keyboard(void);
 
 struct task_struct * current();
 

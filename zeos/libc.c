@@ -105,6 +105,25 @@ int write(int fd,char* buffer,int size){
   if (ret >= 0) return ret;
   else{ errno = -ret;return -1;}
 }
+
+//read system wrapper
+int read(int fd,char* buffer,int count){
+  int ret = -1;
+  /*first parameter to %ebx, second to %ecx, third to %edx etc. Then %eax has to be the code for the interruption
+  in this case, 3 Then we call the interruption 0x80 and we process the result*/
+
+  __asm__ volatile(
+    "movl $3,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (fd), // copy fd, in ebx
+      "+c" (buffer),// copy buffer, in ecx
+      "+d" (count) // copy size, in edx
+      
+);
+  if (ret >= 0) return ret;
+  else{ errno = -ret;return -1;}
+}
 int clone(void(*function)(void), void *stack){
 	//function = starting address of the function to be executed
 	//stack = starting address of a memory region to be used as stack

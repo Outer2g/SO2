@@ -7,6 +7,7 @@
 
 #include <list.h>
 #include <cbuff.h>
+#include <keyboard.h>
 #include <types.h>
 #include <stats.h>
 #include <mm_address.h>
@@ -22,6 +23,7 @@ struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
   int quantum;
   struct stats process_stats;
+  struct kinfo mykb;
   unsigned long kernel_esp;
   enum state_t state;
   unsigned int pos_dir;
@@ -29,8 +31,8 @@ struct task_struct {
   page_table_entry * dir_pages_baseAddr;
 };
 
-struct list_head keyboardqueue;
-struct c_buffer keyboardbuff;
+struct list_head kqueue;
+struct c_buffer kbuff;
 
 
 struct semaphore {

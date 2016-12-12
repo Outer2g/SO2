@@ -20,22 +20,20 @@
 extern int ZEOS_TICK;
 int check_fd(int fd, int permissions)
 {
-  if (fd!=1) return -EBADF; /*EBADF*/
-  if (permissions!=ESCRIPTURA || LECTURA) return -EACCES; /*EACCES*/
+  if (fd!=1 && fd!=0) return -EBADF; /*EBADF*/
+  if (fd == 1 && permissions!=ESCRIPTURA) return -EBADF;
+  if (fd == 0 && permissions!=LECTURA) return -EBADF; /*EACCES*/
   return 0;
 }
 
-
-int sys_read_keyboard(){
-	
-}
 
 int sys_read(int fd, char* buffer, int count){
   int ret = check_fd(fd,LECTURA);
   if (ret != 0) return ret;
   if (buffer == NULL) return -EFAULT;
   if (count <= 0) return -EINVAL;
-  ret = sys_read_keyboard();
+  ret = sys_read_keyboard(buffer,count);
+  return ret;
 }
 
 //system call 'write' routine

@@ -167,8 +167,8 @@ void init_freequeue(){
 }
 
 void init_keyboard(void){
-	INIT_LIST_HEAD(&keyboardqueue);
-	init_cbuff(&keyboardbuff);
+	INIT_LIST_HEAD(&kqueue);
+	init_cbuff(&kbuff);
 }
 
 void inner_task_switch(union task_union* new){

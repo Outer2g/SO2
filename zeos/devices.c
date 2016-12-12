@@ -1,7 +1,8 @@
 #include <io.h>
 #include <utils.h>
 #include <list.h>
-
+#include <sched.h>
+#include <cbuff.h>
 // Queue for blocked processes in I/O 
 struct list_head blocked;
 
@@ -13,4 +14,51 @@ int sys_write_console(char *buffer,int size)
     printc(buffer[i]);
   
   return size;
+}
+
+int sys_read_keyboard(char *buffer,int size){
+	int ret = 0;
+	if(!list_empty(&kqueue)){
+		current()->mykb.left = size;
+		current()->mykb.pos = 0;
+		current()->mykb.buffer = buffer;
+		list_add_tail(&(current()->list), &kqueue);
+     		current()->state = ST_BLOCKED;
+     		sched_next_rr();
+	}
+	else{
+		if(cb_count(&kbuff) >= size){
+			for(int i = 0; i < size;++i){
+				char aux;
+				cb_Read(&kbuff,aux);
+				buffer[i] = aux;
+				++ret;
+			}
+		}
+		else{
+			 if (cb_count(&kbuff) == CBUFF_SIZE){
+				for(int i = 0; i < CBUFF_SIZE;++i){
+				char aux;
+				cb_Read(&kbuff,aux);
+				buffer[i] = aux;
+				++ret;
+				}
+				current()->mykb.left = size-CBUFF_SIZE;
+				current()->mykb.pos = CBUFF_SIZE;
+				current()->mykb.buffer = buffer;
+				list_add_tail(&(current()->list), &kqueue);
+	     			current()->state = ST_BLOCKED;
+	     			sched_next_rr();
+			}
+			else{
+				current()->mykb.left = size;
+				current()->mykb.pos = 0;
+				current()->mykb.buffer = buffer;
+				list_add_tail(&(current()->list), &kqueue);
+	     			current()->state = ST_BLOCKED;
+	     			sched_next_rr();
+			}
+		}
+	}
+	return size;
 }

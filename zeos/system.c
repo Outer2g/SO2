@@ -67,30 +67,24 @@ void keyboard_routine(){
         unsigned char mask = 0xFF >>1;
         char character = ( reading & mask);
         char tostore = char_map[character];
-        printc_xy(0,0,tostore);
+        //printc_xy(0,0,tostore); 
 	int n = cb_Push(&kbuff,tostore);
 	if (n == 0){//si s'ha pogut insertar el char:
 		if(!list_empty(&kqueue)){//si hi ha algun proces esperant
 			struct list_head *e = list_first(&kqueue);
 			struct task_struct *t = list_head_to_task_struct(e);
-			if(cb_count(&kbuff) == t->mykb.left){//comprovem si hi ha prou chars i desbloquejem, el fem primer per si es necessites CBUFF_SIZE exactament
-				for(int i = t->mykb.pos; i < t->mykb.left;++i){
-					char aux;
-					cb_Read(&kbuff,aux);
-					t->mykb.buffer[i] = aux;
-				}
+			printc_xy(0,0,(t->mykb.left + '1' - 1));
+			if(cb_count(&kbuff) == (t->mykb.left)){//comprovem si hi ha prou chars i desbloquejem, el fem primer per si es necessites CBUFF_SIZE exactament
   				t->state=ST_READY;
        				list_del(e);
 				list_add_tail(e,&readyqueue);
+				printc_xy(0,0,tostore);
 			}
-			else if(cb_count(&kbuff) == CBUFF_SIZE){//comprovem si el buffer està ple
-				for(int i = t->mykb.pos; i < CBUFF_SIZE+t->mykb.pos;++i){
-					char aux;
-					cb_Read(&kbuff,aux);
-					t->mykb.buffer[i] = aux;
-				}
-				t->mykb.pos += CBUFF_SIZE;
-				t->mykb.left -= CBUFF_SIZE;
+			if(cb_count(&kbuff) == CBUFF_SIZE){
+				t->state=ST_READY;
+       				list_del(e);
+				list_add_tail(e,&readyqueue);
+				
 			}
 		}
 	}

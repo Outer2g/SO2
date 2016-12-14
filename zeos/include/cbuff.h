@@ -9,12 +9,13 @@ struct c_buffer{
 	char buff[CBUFF_SIZE];
 	int head; //write at head
 	int tail; //read from tail
+	int count;
 };
 
 void init_cbuff(struct c_buffer *cb);
 
 //afegeix l'element c al buffer si es pot altrament retorna -1
-int cb_Push(struct c_buffer *cb, char c);
+int cb_Push(struct c_buffer *cb, char *c);
 
 //llegeix un caràcter del buffer
 int cb_Read(struct c_buffer *cb, char *c);

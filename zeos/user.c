@@ -34,6 +34,12 @@ int __attribute__ ((__section__(".text.main")))
     write(1,"\n",1);*/
     runjp_rank(0,8);
     //runjp();
-    while(1);
+ 	//char *c[3];
+	//read(0,c,3);
+	
+    while(1){
+	//write(1,"aaa",3);
+	//write(1,c,3);
+	}
     return 0;
 }

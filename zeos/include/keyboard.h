@@ -4,7 +4,6 @@
 struct kinfo{
 	int left;//chars que queden
 	int pos;//posició del buffer per el que anem
-	char *buffer;	
 };
 
 #endif /* __KEYBOARD_H__ */

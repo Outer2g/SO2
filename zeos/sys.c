@@ -288,7 +288,7 @@ int sys_sem_signal(int n_sem)
         struct task_struct *t = list_head_to_task_struct(e);
         t->state=ST_READY;
         list_del(e);
-		list_add_tail(e,&readyqueue);
+	list_add_tail(e,&readyqueue);
     }
     return 0;
 }

@@ -17,11 +17,9 @@ int sys_write_console(char *buffer,int size)
 }
 
 int sys_read_keyboard(char *buffer,int size){
-	int ret = 0;
+	current()->mykb.left = size;
+	current()->mykb.pos = 0;
 	if(!list_empty(&kqueue)){
-		current()->mykb.left = size;
-		current()->mykb.pos = 0;
-		current()->mykb.buffer = buffer;
 		list_add_tail(&(current()->list), &kqueue);
      		current()->state = ST_BLOCKED;
      		sched_next_rr();
@@ -32,7 +30,6 @@ int sys_read_keyboard(char *buffer,int size){
 				char aux;
 				cb_Read(&kbuff,aux);
 				buffer[i] = aux;
-				++ret;
 			}
 		}
 		else{
@@ -41,22 +38,35 @@ int sys_read_keyboard(char *buffer,int size){
 				char aux;
 				cb_Read(&kbuff,aux);
 				buffer[i] = aux;
-				++ret;
 				}
 				current()->mykb.left = size-CBUFF_SIZE;
 				current()->mykb.pos = CBUFF_SIZE;
-				current()->mykb.buffer = buffer;
 				list_add_tail(&(current()->list), &kqueue);
 	     			current()->state = ST_BLOCKED;
 	     			sched_next_rr();
 			}
 			else{
-				current()->mykb.left = size;
-				current()->mykb.pos = 0;
-				current()->mykb.buffer = buffer;
 				list_add_tail(&(current()->list), &kqueue);
 	     			current()->state = ST_BLOCKED;
 	     			sched_next_rr();
+				while(1){
+					int n;
+					if (cb_count(&kbuff) == CBUFF_SIZE) n = CBUFF_SIZE;
+					else n = current()->mykb.left;
+					for(int i = 0; i < n;++i){
+						char aux;
+						cb_Read(&kbuff,aux);
+						buffer[current()->mykb.pos+i] = aux;
+					}
+					current()->mykb.pos = current()->mykb.pos + n;
+					if(current()->mykb.pos < current()->mykb.left){	
+						list_add(&(current()->list), &kqueue);
+	     					current()->state = ST_BLOCKED;
+	     					sched_next_rr();
+					}
+					else return size;
+					 
+				}
 			}
 		}
 	}

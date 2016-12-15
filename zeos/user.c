@@ -32,13 +32,14 @@ int __attribute__ ((__section__(".text.main")))
     itoa(x,aux);
     write(1,aux,strlen(aux));
     write(1,"\n",1);*/
-    runjp_rank(0,8);
-    //runjp();
+    //runjp_rank(9,9);
+    runjp();
  	//char *c[3];
-	//read(0,c,3);
-	
-    while(1){
+	//read(0,c,1);
+	//write(1,c,1);
 	//write(1,"aaa",3);
+    while(1){
+	
 	//write(1,c,3);
 	}
     return 0;

@@ -19,6 +19,11 @@
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED,ST_DEAD };
 
+struct kinfo{
+	int size;//chars que queden
+	int pos;//posició del buffer per el que anem
+};
+
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
   int quantum;

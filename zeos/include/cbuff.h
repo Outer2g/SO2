@@ -18,7 +18,7 @@ void init_cbuff(struct c_buffer *cb);
 int cb_Push(struct c_buffer *cb, char *c);
 
 //llegeix un caràcter del buffer
-int cb_Read(struct c_buffer *cb, char *c);
+char cb_Read(struct c_buffer *cb);
 
 
 //

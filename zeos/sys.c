@@ -243,6 +243,57 @@ int sys_get_stats(int pid,struct stats *st){
   return -ESRCH;
 }
 
+int sys_read_keyboard(char *buffer,int size){
+	if(!access_ok(0, buffer, size)) return -EFAULT;
+	current()->mykb.size = size;
+	current()->mykb.pos = 0;
+	if(!list_empty(&kqueue)){
+		list_add_tail(&(current()->list), &kqueue);
+     		current()->state = ST_BLOCKED;
+     		sched_next_rr();
+	}
+	if(cb_count(&kbuff) >= size){
+		for(int i = 0; i < size;++i){
+			char aux = cb_Read(&kbuff);
+			buffer[i] = aux;
+		}
+	}
+	else{
+		 if (cb_count(&kbuff) == CBUFF_SIZE){
+			for(int i = 0; i < CBUFF_SIZE;++i){
+			char aux = cb_Read(&kbuff);
+			buffer[i] = aux;
+			}
+			current()->mykb.pos = CBUFF_SIZE;
+			list_add_tail(&(current()->list), &kqueue);
+	   		current()->state = ST_BLOCKED;
+	  		sched_next_rr();
+		}
+		else{
+			list_add_tail(&(current()->list), &kqueue);
+	     		current()->state = ST_BLOCKED;
+	     		sched_next_rr();
+			while(1){
+				int n;
+				if (cb_count(&kbuff) == CBUFF_SIZE) n = CBUFF_SIZE;
+				else n = current()->mykb.size - current()->mykb.pos;
+				for(int i = 0; i < n;++i){
+					char aux = cb_Read(&kbuff);
+					buffer[current()->mykb.pos+i] = aux;
+				}
+				current()->mykb.pos = current()->mykb.pos + n;
+				if(current()->mykb.pos < current()->mykb.size){	
+					list_add(&(current()->list), &kqueue);
+	     				current()->state = ST_BLOCKED;
+	     				sched_next_rr();
+				}
+				else return size;	 
+				}
+			}
+	}
+	return size;
+}
+
 int sys_sem_init(int n_sem, unsigned int value)
 {
     if (n_sem >= NR_SEM || n_sem < 0) return -EINVAL;

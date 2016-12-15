@@ -73,12 +73,13 @@ void keyboard_routine(){
 		if(!list_empty(&kqueue)){//si hi ha algun proces esperant
 			struct list_head *e = list_first(&kqueue);
 			struct task_struct *t = list_head_to_task_struct(e);
-			printc_xy(0,0,(t->mykb.left + '1' - 1));
-			if(cb_count(&kbuff) == (t->mykb.left)){//comprovem si hi ha prou chars i desbloquejem, el fem primer per si es necessites CBUFF_SIZE exactament
+			//printc_xy(2,2,(t->mykb.left+ '1' - 1));
+			//printc_xy(0,0,(t->mykb.left + '1' - 1));
+			if(cb_count(&kbuff) == (t->mykb.size - t->mykb.pos )){//comprovem si hi ha prou chars i desbloquejem, el fem primer per si es necessites CBUFF_SIZE exactament
   				t->state=ST_READY;
        				list_del(e);
 				list_add_tail(e,&readyqueue);
-				printc_xy(0,0,tostore);
+				//printc_xy(3,3,tostore);
 			}
 			if(cb_count(&kbuff) == CBUFF_SIZE){
 				t->state=ST_READY;

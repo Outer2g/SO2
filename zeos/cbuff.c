@@ -21,14 +21,15 @@ int cb_Push(struct c_buffer *cb, char *c){
 	return 0;
 }
 
-int cb_Read(struct c_buffer *cb, char *c){
+char cb_Read(struct c_buffer *cb){
 	if(cb->count == 0) return -1;
 	//if(cb->head == cb->tail) return -1;
-	c = cb->buff[cb->tail];
+	char c = cb->buff[cb->tail];
+	//printc_xy(6,6,(c));
 	++cb->tail;
 	--cb->count;
 	if(cb->tail == CBUFF_SIZE)cb->tail = 0;
-	return 0;
+	return c;
 }
 
 int cb_IsEmpty(const struct c_buffer *cb){

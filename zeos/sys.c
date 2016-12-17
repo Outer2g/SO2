@@ -253,14 +253,16 @@ int sys_read_keyboard(char *buffer,int size){
      		sched_next_rr();
 	}
 	if(cb_count(&kbuff) >= size){
-		for(int i = 0; i < size;++i){
+    int i;
+		for( i = 0; i < size;++i){
 			char aux = cb_Read(&kbuff);
 			buffer[i] = aux;
 		}
 	}
 	else{
 		 if (cb_count(&kbuff) == CBUFF_SIZE){
-			for(int i = 0; i < CBUFF_SIZE;++i){
+      int i;
+			for( i = 0; i < CBUFF_SIZE;++i){
 			char aux = cb_Read(&kbuff);
 			buffer[i] = aux;
 			}
@@ -277,7 +279,8 @@ int sys_read_keyboard(char *buffer,int size){
 				int n;
 				if (cb_count(&kbuff) == CBUFF_SIZE) n = CBUFF_SIZE;
 				else n = current()->mykb.size - current()->mykb.pos;
-				for(int i = 0; i < n;++i){
+        int i;
+				for( i = 0; i < n;++i){
 					char aux = cb_Read(&kbuff);
 					buffer[current()->mykb.pos+i] = aux;
 				}

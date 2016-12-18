@@ -364,3 +364,17 @@ int sys_sem_destroy(int n_sem)
     mysem->ownerPID = -1;
     return 0;
 }
+
+
+void *sys_sbrk(int increment){
+  //getting last @ of the heap
+  int size = current()->heapSize;
+  void *finalHeap = (void*) ((int) ((void*)(L_USER_START + (NUM_PAG_CODE + NUM_PAG_DATA*2)*PAGE_SIZE)) + size);
+  if (increment == 0) return finalHeap;
+  else if (increment > 0){
+    int ret = increaseHeap(increment,finalHeap);
+    if (ret == -1) return (void*) -1;
+  }
+  else decreaseHeap(increment,finalHeap);
+  return finalHeap;
+}

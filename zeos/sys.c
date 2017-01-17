@@ -99,8 +99,11 @@ int sys_fork()
   //check if we have enough pages
   int i,j;
   //position in vector is the number of the reserved page 
-  int RP[NUM_PAG_DATA];
-  for (i = 0; i< NUM_PAG_DATA; i++){
+  int heapPages = parent->task.heapSize / PAGE_SIZE;
+  if (parent->task.heapSize % PAGE_SIZE > 0 ) ++ heapPages;
+
+  int RP[NUM_PAG_DATA + heapPages];
+  for (i = 0; i< NUM_PAG_DATA + heapPages; i++){
       RP[i] = alloc_frame();
       if (RP[i] == -1){
           //if error occurred, it means there weren't enough space => free the taken space and ret error
@@ -123,7 +126,7 @@ int sys_fork()
   }
   // e) ii) copy user data+stack pages from parent to child, using tmp page
   int unusedmem = PAG_LOG_INIT_DATA + NUM_PAG_DATA;
-  for (i = 0; i < NUM_PAG_DATA; i++)
+  for (i = 0; i < NUM_PAG_DATA + heapPages; i++)
   {
       // assignem els frames a la part de data de child
     set_ss_pag(child_PT, PAG_LOG_INIT_DATA + i, RP[i]);
@@ -133,6 +136,17 @@ int sys_fork()
       // al copiar cal transformar en adreces (eren l'indeX de la TP)
     copy_data((void *) ((PAG_LOG_INIT_DATA + i) << 12), (void *) ((unusedmem + i) << 12), PAGE_SIZE); // Page size son 4KB
     // unlink parent pt -- physycal pages
+    del_ss_pag(parent_PT, unusedmem + i);
+  }
+  //copy heap
+  int heapStart = ((L_USER_START + (NUM_PAG_CODE + NUM_PAG_DATA*2)));
+  int heapEnd = heapStart + (parent->task.heapSize / PAGE_SIZE);
+  if (parent->task.heapSize % PAGE_SIZE > 0 ) ++ heapEnd;
+
+  for(i = 0; i < heapEnd;i++){
+    set_ss_pag(child_PT,heapStart + i,RP[NUM_PAG_DATA + i]);
+    set_ss_pag(parent_PT, unusedmem + i,RP[NUM_PAG_DATA + i]);
+    copy_data((void *) ((heapStart + i) << 12), (void *) ((unusedmem + i) << 12), PAGE_SIZE); // Page size son 4KB
     del_ss_pag(parent_PT, unusedmem + i);
   }
   //flush tlb

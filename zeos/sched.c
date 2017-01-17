@@ -88,6 +88,7 @@ void init_idle (void)
     ticksExec = DEFAULT_QUANTUM;
     init_stats(&realelement->task.process_stats);
     realelement->task.PID = 0;
+    realelement->task.heapSize = 0;
     allocate_DIR(&realelement->task);
     idle_task = &realelement->task;
     
@@ -112,6 +113,7 @@ void init_task1(void)
     struct list_head * e = list_first( &freequeue );
     union task_union * realelement = list_entry( e, struct task_struct, list);
     realelement->task.PID = 1;
+    realelement->task.heapSize = 0;
     set_quantum(&realelement->task,DEFAULT_QUANTUM); 
     init_stats(&realelement->task.process_stats);
     allocate_DIR(&realelement->task);
@@ -155,6 +157,7 @@ void init_sched(){
 void init_freequeue(){
     INIT_LIST_HEAD( &freequeue );
     union task_union* aux = task;
+    task->task.heapSize = 0;
     int size = NR_TASKS;
     int current = 1;
     while (current <= size){

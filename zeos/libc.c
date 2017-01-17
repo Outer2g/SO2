@@ -197,6 +197,19 @@ int sem_destroy(int n_sem){
   if (ret >= 0) return ret;
   else {errno = -ret; return -1;}
 }
+void *sbrk(int increment){
+  int ret;
+  __asm__ volatile(
+    "movl $5,%%eax;"
+    "int $0x80;"
+    : "=a" (ret), // return result of eax to variable ret
+      "+b" (increment) // copy increment, in ebx
+      
+);
+  if (ret >= 0) return ret;
+  else {errno = -ret; return -1;}
+
+}
 void perror(const char *str){
     
 }

@@ -27,7 +27,75 @@ page_table_entry pagusr_table[NR_TASKS][TOTAL_PAGES]
 
 /* TSS */
 TSS         tss; 
+/* HEAP*/
+int increaseHeap(int increment,void* finalHeap){
+  page_table_entry * currentPT = get_PT(current());
+  struct task_struct *process = current();
+  int heapSize =process->heapSize;
+  int npages = heapSize/ PAGE_SIZE;
+  if (heapSize % PAGE_SIZE > 0 ) ++ npages;
+  int pagesToAdd = (heapSize + increment) / PAGE_SIZE;
+  if ((heapSize + increment) % PAGE_SIZE > 0 ) ++ pagesToAdd;
 
+  int last_page = ((unsigned int)finalHeap) >> 12;
+  if (heapSize > 0) ++last_page;
+  int new = pagesToAdd - npages;
+  int origin = new;
+  while (new > 0){
+    int frame = alloc_frame();
+    if (frame < 0){
+      //not enough memory
+      while(new != origin){
+        frame = get_frame(currentPT,last_page);
+        free_frame(frame);
+        del_ss_pag(currentPT,last_page);
+        last_page --;
+        new ++;
+      }
+      set_cr3(get_DIR(current()));
+      return -1;
+    }
+    set_ss_pag(currentPT,last_page,frame);
+    last_page ++;
+    new --;
+  }
+  set_cr3(get_DIR(current()));
+  process->heapSize = heapSize + increment;
+  return 1;
+
+}
+
+
+int decreaseHeap(int increment,void* finalHeap){
+  page_table_entry * currentPT = get_PT(current());
+  struct task_struct *process = current();
+  int heapSize =process->heapSize;
+  int npages = heapSize/ PAGE_SIZE;
+  if (heapSize % PAGE_SIZE > 0 ) ++ npages;
+  void* addr = (void*)((int)finalHeap + increment);
+  void* heapStart = (void*)(L_USER_START + (NUM_PAG_CODE + NUM_PAG_DATA*2)*PAGE_SIZE);
+  if (addr < heapStart){
+    addr = heapStart;
+    heapSize = 0;
+    increment = 0;
+  }
+  int pagesToAdd = (heapSize + increment) / PAGE_SIZE;
+  if ((heapSize + increment) % PAGE_SIZE > 0 ) ++ pagesToAdd;
+
+  int last_page = ((unsigned int)finalHeap) >> 12;
+  //if (heapSize > 0) ++last_page;
+  int new = pagesToAdd - npages;
+  int origin = new;
+  while(new > 0){
+    int frame = get_frame(currentPT,last_page);
+    free_frame(frame);
+    del_ss_pag(currentPT,last_page);
+    --last_page;
+    --new;
+  }
+  set_cr3(get_DIR(current()));
+  process->heapSize = heapSize + increment;
+}
 
 
 /***********************************************/

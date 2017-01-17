@@ -32,6 +32,7 @@ struct task_struct {
   unsigned long kernel_esp;
   enum state_t state;
   unsigned int pos_dir;
+  int heapSize;
   struct list_head list;
   page_table_entry * dir_pages_baseAddr;
 };
